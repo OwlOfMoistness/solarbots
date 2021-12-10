@@ -34,8 +34,8 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 	}
 
 	function _baseURI() internal override view returns (string memory) {
-        return uri;
-    }
+		return uri;
+	}
 
 	function updateURI(string memory newURI) public onlyOwner {
 		uri = newURI;
@@ -72,7 +72,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 		require(_amount < MAX_PER_CALL, "Minting too many at once");
 		require(msg.value == _amount * PRICE, "Wrong price");
 		uint256 supply = totalSupply();
-		require(supply + _amount * 4 < MAX_SUPPLY, "Can't mint over limit");
+		require(supply + _amount * 4 < MAX_SUPPLY - reserved * 4, "Can't mint over limit");
 
 		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		for (uint256 i = 0; i < _amount; i++)
@@ -85,6 +85,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 		_claim(_index, _account, _amount, _proof);
 		if (_amount > MAX_PER_CALL) {
 			reservedToMint[_account] = _amount;
+			reserved += _amount;
 		}
 		else {
 			uint256 supply = totalSupply();
@@ -97,6 +98,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 		require(_amount < MAX_PER_CALL, "Minting too many at once");
 
 		reservedToMint[msg.sender] -= _amount;
+		reserved -= _amount;
 		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		uint256 supply = totalSupply();
 		for (uint256 i = 0; i < _amount; i++)
