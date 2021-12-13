@@ -1,4 +1,4 @@
-pragma solidity 0.8.0;
+pragma solidity 0.8.2;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract MerkleWhitelist {
 	using MerkleProof for bytes32[];
-
 
 	bytes32 public merkleRoot;
 	mapping(uint256 => uint256) public claimedBitMap;

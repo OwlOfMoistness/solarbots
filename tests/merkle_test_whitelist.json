@@ -1,0 +1,58 @@
+{
+    "claims": {
+        "0x0000000000000000000000000000000000000001": {
+            "amount": "1",
+            "index": 0,
+            "proof": [
+                "0xd78ecd7bfc32ca175f9b29d24c6c9cab9a7c07dac85fa6210db22ce407e12dcf",
+                "0xb2e3f384b65851d83d07beeca402eb426321c0de7fb3a456c12e5adad206b413",
+                "0x86e0d7073c2d2251b5335b5d798bb9c3b3f0f37e32005498d9d67f14afb24296"
+            ]
+        },
+        "0x0000000000000000000000000000000000000002": {
+            "amount": "4",
+            "index": 1,
+            "proof": [
+                "0x0edc0a1b739661a82513241fa010bc1d2aa05c926ac411aff89ee900838cdba3",
+                "0xb2e3f384b65851d83d07beeca402eb426321c0de7fb3a456c12e5adad206b413",
+                "0x86e0d7073c2d2251b5335b5d798bb9c3b3f0f37e32005498d9d67f14afb24296"
+            ]
+        },
+        "0x0000000000000000000000000000000000000003": {
+            "amount": "10",
+            "index": 2,
+            "proof": [
+                "0x7262b833ba7227a8c6d86910486cb57f6a8e644115fb15c0db910cf40442b4fb",
+                "0x17d4a1aaf8403cff731696f0588edc571141c66167595fa0f53f1fc24c5a8571",
+                "0x86e0d7073c2d2251b5335b5d798bb9c3b3f0f37e32005498d9d67f14afb24296"
+            ]
+        },
+        "0x0000000000000000000000000000000000000004": {
+            "amount": "20",
+            "index": 3,
+            "proof": [
+                "0xc44c9ba7da87f6c9643c9ee638d1b9bb240e4361ee17414652adaf7ec0c156ec",
+                "0x17d4a1aaf8403cff731696f0588edc571141c66167595fa0f53f1fc24c5a8571",
+                "0x86e0d7073c2d2251b5335b5d798bb9c3b3f0f37e32005498d9d67f14afb24296"
+            ]
+        },
+        "0x0000000000000000000000000000000000000005": {
+            "amount": "100",
+            "index": 4,
+            "proof": [
+                "0xbe870219d3bda6e27c6f04d02595141d80b1f50419382e4cfd4fa757de431627",
+                "0x830626f53b5d09cfcca064c0834620b6a4a97d9cc31ca683ba5c24cb49b00d93",
+                "0x41ca117707e46a531b506093fe88b9bda85fa45c6cd760f749dddb65876e3ecf"
+            ]
+        },
+        "0x0000000000000000000000000000000000000006": {
+            "amount": "8000",
+            "index": 5,
+            "proof": [
+                "0xc44095b9bca43cf2b33fd6cca27db09ca08603f9ee3a044ae9ef4d8278bd654f",
+                "0x830626f53b5d09cfcca064c0834620b6a4a97d9cc31ca683ba5c24cb49b00d93",
+                "0x41ca117707e46a531b506093fe88b9bda85fa45c6cd760f749dddb65876e3ecf"
+            ]
+        }
+    }
+}

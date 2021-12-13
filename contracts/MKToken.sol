@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -61,8 +61,14 @@ contract MkToken is ERC20("MK", "MK1") {
 		}
 	}
 
-	function burn(address _from, uint256 _amount) external {
-		_burn(_from, _amount);
+	function burn(uint256 _amount) external {
+		_burn(msg.sender, _amount);
+	}
+
+	function burnFor(address _user, uint256 _amount) external {
+		uint256 currentAllowance = allowance(_user, msg.sender);
+		_approve(_user, msg.sender, currentAllowance - _amount);
+		_burn(_user, _amount);
 	}
 
 	function getTotalClaimable(address _user) external view returns(uint256) {

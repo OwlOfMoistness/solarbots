@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -13,7 +13,7 @@ import "./MerkleWhitelist.sol";
  *    -"-"- 
 */
 
-contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
+contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
 	uint256 public constant MAX_SUPPLY = 40000;
 	uint256 public constant PRICE = 0.2 ether;
@@ -26,11 +26,16 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 
 	mapping(address => uint256) public reservedToMint;
 	uint256 public reserved;
-	bool public canPurchaseUnclaimed;
+	uint256 public canPurchaseUnclaimed;
+	uint256 public publicSaleDate;
 
 	mapping(uint256 => uint256) genes;
 
-	constructor(address _recipient, bytes32 _root) ERC721("Solar Bots", "BOTS") MerkleWhitelist(_root) {
+	event BotMinted(uint256 indexed tokenId, address indexed receiver, uint256 genes);
+
+	constructor(uint256 _canPurchaseUnclaimed, uint256 _publicSaleDate, bytes32 _root) ERC721("Solar Bots", "BOTS") MerkleWhitelist(_root) {
+		canPurchaseUnclaimed = _canPurchaseUnclaimed;
+		publicSaleDate = _publicSaleDate;
 	}
 
 	function _baseURI() internal override view returns (string memory) {
@@ -41,8 +46,13 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 		uri = newURI;
 	}
 
-	function setCanPurchaseUnclaimed(bool _val) external onlyOwner {
-		canPurchaseUnclaimed = _val;
+	function updateYieldToken(address _token) external onlyOwner {
+		yieldToken = _token;
+	}
+
+	function getReward() external {
+		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
+		MkToken(yieldToken).getReward(msg.sender);
 	}
 
 	function transferFrom(address from, address to, uint256 tokenId) public override {
@@ -56,23 +66,17 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 	}
 
 	function mintBots(uint256 _amount) external payable {
-		require(_amount < MAX_PER_CALL, "Minting too many at once");
+		require(block.timestamp >= publicSaleDate, "Public sale not ready");
+		require(_amount <= MAX_PER_CALL, "Minting too many at once");
 		require(msg.value == _amount * PRICE, "Wrong price");
-		require(publicSaleCounter + _amount < PUBLIC_SALE, "Over public sale amount");
 
-		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		uint256 supply = totalSupply();
-		for (uint256 i = 0; i < _amount; i++)
-			_mintTeam(supply + i * 4);
-		publicSaleCounter += _amount;
-	}
-
-	function mintUnclaimed(uint256 _amount) external payable {
-		require(canPurchaseUnclaimed, "Cannot purchase unclaimed");
-		require(_amount < MAX_PER_CALL, "Minting too many at once");
-		require(msg.value == _amount * PRICE, "Wrong price");
-		uint256 supply = totalSupply();
-		require(supply + _amount * 4 < MAX_SUPPLY - reserved * 4, "Can't mint over limit");
+		if (block.timestamp < canPurchaseUnclaimed){
+			require(publicSaleCounter + _amount <= PUBLIC_SALE, "Over public sale amount");
+			publicSaleCounter += _amount;
+		}
+		else
+			require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
 
 		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		for (uint256 i = 0; i < _amount; i++)
@@ -80,6 +84,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 	}
 
 	function mintBotsWithSignature(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
+		require(block.timestamp >= publicSaleDate, "Public sale not ready");
 		require(msg.value == _amount * PRICE, "Wrong price");
 
 		_claim(_index, _account, _amount, _proof);
@@ -95,7 +100,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 	}
 
 	function mintRemainder(uint256 _amount) external {
-		require(_amount < MAX_PER_CALL, "Minting too many at once");
+		require(_amount <= MAX_PER_CALL, "Minting too many at once");
 
 		reservedToMint[msg.sender] -= _amount;
 		reserved -= _amount;
@@ -128,6 +133,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 			gene += i;
 			genes[_id + i] = gene;
 			_mint(msg.sender, _id + i);
+			emit BotMinted(_id + i, msg.sender, gene);
 		}
 	}
 
@@ -170,8 +176,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable{
 			return uint256(keccak256(abi.encodePacked(_seed)));
 	}
 
-	function fetchEther() external onlyOwner{
+	function fetchEther() external onlyOwner {
 		payable(msg.sender).transfer(address(this).balance);
 	}
-
 }
