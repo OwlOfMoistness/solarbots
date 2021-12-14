@@ -3,7 +3,7 @@ import csv
 import json
 
 def gen():
-    generate_merkle_tree_json('tests/test_list.csv', 'tests/merkle_test_whitelist')
+    generate_merkle_tree_json('scripts/list.csv', 'scripts/merkle_test_whitelist')
 
 def generate_merkle_tree_json(whitelist, json_name):
     rows = fetch_data_from_csv(whitelist, 0)
@@ -21,8 +21,6 @@ def generate_merkle_tree_json(whitelist, json_name):
 def generate_leaf(index, account, amount):
     return web3.soliditySha3(
         [ 'address' , 'uint256', 'uint256'], [web3.toChecksumAddress(account), Wei(amount), index])
-    # return web3.soliditySha3(
-    #     [ 'uint256' , 'address', 'uint256'], [index, web3.toChecksumAddress(account), Wei(amount)])
 
 def compute_node(h1, h2):
     if h1 <= h2:

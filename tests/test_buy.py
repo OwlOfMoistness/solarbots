@@ -3,6 +3,25 @@ import brownie
 from brownie import Wei, accounts, reverts, chain
 import json
 
+def test_buy_reserve(solar, mk, accounts, chain):
+    for acc in accounts:
+        acc.transfer(to=accounts[0], amount='100 ether')
+    solar.updateYieldToken(mk, {'from':accounts[0]})
+
+    with reverts('Public sale not ready'):
+        solar.mintBots(10, {'from':accounts[0], 'value':Wei('0.2 ether') * 10})
+
+    time = solar.publicSaleDate()
+    now = chain.time()
+    chain.sleep(time - now)
+    public_batch = solar.PUBLIC_SALE()
+    solar.reserveBots(10, {'from':accounts[0], 'value':Wei('0.2 ether') * 10})
+    assert solar.reservedToMint(accounts[0]) == 10
+
+    solar.transferMints(accounts[1], 10, {'from':accounts[0]})
+    assert solar.reservedToMint(accounts[1]) == 10
+
+
 def test_buy_public(solar, mk, accounts, chain):
     for acc in accounts:
         acc.transfer(to=accounts[0], amount='100 ether')
@@ -31,7 +50,7 @@ def test_buy_public(solar, mk, accounts, chain):
     tree = json.load(file)
     accounts[0].transfer(to=big, amount=Wei('0.2 ether') * 8000)
     add_6_data = tree['claims'][big.address]
-    solar.mintBotsWithSignature(add_6_data['index'], big, add_6_data['amount'], add_6_data['proof'], {'from':big, 'value': Wei('0.2 ether') * int(add_6_data['amount'])})
+    solar.mintAllBotsWithSignature(add_6_data['index'], big, add_6_data['amount'], add_6_data['proof'], {'from':big, 'value': Wei('0.2 ether') * int(add_6_data['amount'])})
 
     time = solar.canPurchaseUnclaimed()
     now = chain.time()

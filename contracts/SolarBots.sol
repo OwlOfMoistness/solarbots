@@ -25,6 +25,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 	string public uri;
 
 	mapping(address => uint256) public reservedToMint;
+	mapping(address => uint256) public mintedBy;
 	uint256 public reserved;
 	uint256 public canPurchaseUnclaimed;
 	uint256 public publicSaleDate;
@@ -83,18 +84,57 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 			_mintTeam(supply + i * 4);
 	}
 
-	function mintBotsWithSignature(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
+	function reserveBots(uint256 _amount) external payable {
+		require(block.timestamp >= publicSaleDate, "Public sale not ready");
+		require(_amount <= MAX_PER_CALL, "Minting too many at once");
+		require(msg.value == _amount * PRICE, "Wrong price");
+
+		uint256 supply = totalSupply();
+		if (block.timestamp < canPurchaseUnclaimed){
+			require(publicSaleCounter + _amount <= PUBLIC_SALE, "Over public sale amount");
+			publicSaleCounter += _amount;
+		}
+		else
+			require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
+
+		reservedToMint[msg.sender] += _amount;
+		reserved += _amount;
+	}
+
+	function mintAllBotsWithSignature(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
 		require(block.timestamp >= publicSaleDate, "Public sale not ready");
 		require(msg.value == _amount * PRICE, "Wrong price");
+		require(msg.sender == _account, "Caller not part of tree");
+		require(mintedBy[_account] == 0, "Minted some");
 
 		_claim(_index, _account, _amount, _proof);
 		if (_amount > MAX_PER_CALL) {
-			reservedToMint[_account] = _amount;
+			reservedToMint[_account] += _amount;
 			reserved += _amount;
 		}
 		else {
 			uint256 supply = totalSupply();
 			for (uint256 i = 0; i < _amount; i++)
+				_mintTeam(supply + i * 4);
+		}
+	}
+
+	function mintSomeBotsWithSignature(uint256 _toMint, uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
+		require(block.timestamp >= publicSaleDate, "Public sale not ready");
+		require(msg.value == _toMint * PRICE, "Wrong price");
+		require(msg.sender == _account, "Caller not part of tree");
+
+		require(!isClaimed(_index), "Claimed already");
+		_verify(_index, _account, _amount, _proof);
+		require(mintedBy[_account] + _toMint <= _amount, "Can't mint more than allocated");
+		mintedBy[_account] += _toMint;
+		if (_toMint > MAX_PER_CALL) {
+			reservedToMint[_account] += _toMint;
+			reserved += _toMint;
+		}
+		else {
+			uint256 supply = totalSupply();
+			for (uint256 i = 0; i < _toMint; i++)
 				_mintTeam(supply + i * 4);
 		}
 	}
@@ -108,6 +148,11 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 		uint256 supply = totalSupply();
 		for (uint256 i = 0; i < _amount; i++)
 			_mintTeam(supply + i * 4);
+	}
+
+	function transferMints(address _to, uint256 _amount) external {
+		reservedToMint[msg.sender] -= _amount;
+		reservedToMint[_to] += _amount;
 	}
 
 

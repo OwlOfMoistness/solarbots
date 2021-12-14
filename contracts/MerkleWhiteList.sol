@@ -36,6 +36,11 @@ contract MerkleWhitelist {
 		claimedBitMap[wordIndex] |= 1 << bitIndex;
 	}
 
+	function _verify(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) internal {
+		bytes32 node = keccak256(abi.encodePacked(_account, _amount, _index));
+		require(_proof.verify(merkleRoot, node), "Wrong proof");
+	}
+
 	function _claim(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) internal {
 		require(!isClaimed(_index), "Claimed already");
 		bytes32 node = keccak256(abi.encodePacked(_account, _amount, _index));
