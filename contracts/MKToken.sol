@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  *    -"-"- 
 */
 
-contract MkToken is ERC20("MK", "MK1") {
+contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 
 	uint256 constant public BASE_RATE = 6_849315068_000000000 ; 
 

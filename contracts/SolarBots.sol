@@ -34,7 +34,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
 	event BotMinted(uint256 indexed tokenId, address indexed receiver, uint256 genes);
 
-	constructor(uint256 _canPurchaseUnclaimed, uint256 _publicSaleDate, bytes32 _root) ERC721("Solar Bots", "BOTS") MerkleWhitelist(_root) {
+	constructor(uint256 _canPurchaseUnclaimed, uint256 _publicSaleDate, bytes32 _root) ERC721("Solarbots", "BOTS") MerkleWhitelist(_root) {
 		canPurchaseUnclaimed = _canPurchaseUnclaimed;
 		publicSaleDate = _publicSaleDate;
 	}
