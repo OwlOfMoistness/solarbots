@@ -45,7 +45,7 @@ def test_buy_public(solar, mk, accounts, chain):
     with reverts('Over public sale amount'):
         solar.mintBots(10, {'from':accounts[0], 'value':Wei('0.2 ether') * 10})
 
-    big = accounts.at('0x0000000000000000000000000000000000000006', force=True)
+    big = accounts.at('0x861946AEB40036660Ea2C27C7ef0Ac36c81DB5eA', force=True)
     file = open('tests/merkle_test_whitelist.json', 'r')
     tree = json.load(file)
     accounts[0].transfer(to=big, amount=Wei('0.2 ether') * 8000)

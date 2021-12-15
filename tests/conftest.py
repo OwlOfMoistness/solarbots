@@ -12,7 +12,7 @@ def minter(accounts):
 
 @pytest.fixture()
 def solar(SolarBots, minter,):
-    return SolarBots.deploy(1640127600, 1639840386, '0xa404fd424ef1f5e70d408d5b28dae6809f5246b20597fe2d53d5dce4590c5c6b', {'from':minter})
+    return SolarBots.deploy(1640127600, 1639840386, '0xa95c3ab33bf64b2f2b2a1b925a867f8bc965d2f7ef0b3094bbbb68cdbab1101b', {'from':minter})
 
 @pytest.fixture()
 def mk(MkToken, solar, minter):

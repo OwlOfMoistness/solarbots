@@ -2,6 +2,7 @@ pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./MKToken.sol";
 import "./MerkleWhitelist.sol";
@@ -14,6 +15,7 @@ import "./MerkleWhitelist.sol";
 */
 
 contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
+	using ECDSA for bytes32;
 
 	uint256 public constant MAX_SUPPLY = 40000;
 	uint256 public constant PRICE = 0.2 ether;
@@ -26,6 +28,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
 	mapping(address => uint256) public reservedToMint;
 	mapping(address => uint256) public mintedBy;
+	mapping(address => bool) public human;
 	uint256 public reserved;
 	uint256 public canPurchaseUnclaimed;
 	uint256 public publicSaleDate;
@@ -141,6 +144,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
 	function mintRemainder(uint256 _amount) external {
 		require(_amount <= MAX_PER_CALL, "Minting too many at once");
+		require(human[msg.sender], "No human :(");
 
 		reservedToMint[msg.sender] -= _amount;
 		reserved -= _amount;
@@ -155,6 +159,10 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 		reservedToMint[_to] += _amount;
 	}
 
+	function meHuman(string calldata _msg, bytes calldata _sig) external {
+		require(keccak256(abi.encodePacked(_msg)).toEthSignedMessageHash().recover(_sig) == msg.sender, "Sig not valid");
+		human[msg.sender] = true;
+	}
 
 	// gene composision
 	// 1       8        16       24      
