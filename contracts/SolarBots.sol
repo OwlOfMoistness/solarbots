@@ -165,29 +165,40 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 	}
 
 	// gene composision
-	// 1       8        16       24      
-	// 0000000 - 00000000-00000000 - 000000000
 	// rarity    faction  bot-type   class
+	// 00=00=00=00
 	function _mintTeam(uint256 _id) internal {
 		uint256 seed = generateSeed(0, _id);
 		for(uint256 i = 0; i < 4; i++) {
 			uint256 gene = 0;
-			gene = gene + getRarityOutcome(seed) << 64;
+			gene = gene + getRarityOutcome(seed) << 2;
 			seed = generateSeed(seed, _id);
 			uint256 faction = getFactionOutcome(seed);
-			gene = (gene + faction) << 64;
+			gene = (gene + faction) << 2;
 			seed = generateSeed(seed, _id);
 			// bot type
 			if (faction == 0)
-				gene <<= 64;
+				gene <<= 2;
 			else
-				gene = (gene + 1 + seed % 3) << 64;
+				gene = (gene + 1 + seed % 3) << 2;
 			seed = generateSeed(seed, _id);
 			gene += i;
-			genes[_id + i] = gene;
+			_storeGenes(gene, _id + i);
 			_mint(msg.sender, _id + i);
 			emit BotMinted(_id + i, msg.sender, gene);
 		}
+	}
+
+	function _storeGenes(uint256 _genes, uint256 _id) internal {
+		uint256 word = _id / 32;
+		uint256 index = _id % 32;
+		genes[word] |= _genes << (index * 8);
+	}
+
+	function getGenes(uint256 _id) external view returns(uint256 gene) {
+		uint256 word = _id / 32;
+		uint256 index = _id % 32;
+		gene = (genes[word] >> (index * 8)) & 0xff;
 	}
 
 	function getFactionOutcome(uint256 _seed) internal returns(uint256) {
