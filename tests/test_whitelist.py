@@ -19,14 +19,17 @@ def test_whitelist(solar, accounts, chain):
     tree = json.load(file)
     add_0_data = tree['claims'][adds[0]]
 
-    time = solar.publicSaleDate()
+    time = solar.whitelistSale()
     now = chain.time()
     chain.sleep(time - now)
 
     solar.mintAllBotsWithSignature(add_0_data['index'], testers[0], add_0_data['amount'], add_0_data['proof'], {'from':testers[0], 'value': Wei('0.2 ether') * int(add_0_data['amount'])})
-    assert solar.balanceOf(testers[0]) == 4
+    assert solar.balanceOf(testers[0]) == 4 + 4
     with reverts('Claimed already'):
         solar.mintAllBotsWithSignature(add_0_data['index'], testers[0], add_0_data['amount'], add_0_data['proof'], {'from':testers[0], 'value': Wei('0.2 ether') * int(add_0_data['amount'])})
+
+    with reverts('Public sale not ready'):
+        solar.mintBots(10, {'from':accounts[0], 'value':Wei('0.2 ether') * 10})
 
     add_1_data = tree['claims'][adds[1]]
     with reverts('Wrong proof'):
@@ -67,7 +70,7 @@ def test_buy_remainder(solar, mk, accounts, chain):
     tree = json.load(file)
     add_4_data = tree['claims'][adds[4]]
 
-    time = solar.publicSaleDate()
+    time = solar.whitelistSale()
     now = chain.time()
     chain.sleep(time - now)
     solar.mintAllBotsWithSignature(add_4_data['index'], testers[4], add_4_data['amount'], add_4_data['proof'], {'from':testers[4], 'value': Wei('0.2 ether') * int(add_4_data['amount'])})
@@ -112,7 +115,7 @@ def test_mint_some_signatures(solar, mk, accounts, chain):
     tree = json.load(file)
     add_4_data = tree['claims'][adds[4]]
 
-    time = solar.publicSaleDate()
+    time = solar.whitelistSale()
     now = chain.time()
     chain.sleep(time - now)
     solar.mintSomeBotsWithSignature(100, add_4_data['index'], testers[4], add_4_data['amount'], add_4_data['proof'], {'from':testers[4], 'value': Wei('0.2 ether') * int(add_4_data['amount'])})
@@ -164,7 +167,7 @@ def test_mint_some_signatures_random(solar, mk, accounts, chain):
     tree = json.load(file)
     add_4_data = tree['claims'][adds[4]]
 
-    time = solar.publicSaleDate()
+    time = solar.whitelistSale()
     now = chain.time()
     chain.sleep(time - now)
     solar.mintSomeBotsWithSignature(10, add_4_data['index'], testers[4], add_4_data['amount'], add_4_data['proof'], {'from':testers[4], 'value': Wei('0.2 ether') * 10})

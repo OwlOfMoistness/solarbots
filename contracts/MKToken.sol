@@ -15,8 +15,7 @@ contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 
 	uint256 constant public BASE_RATE = 6_849315068_000000000 ; 
 
-	// CHANGE THIS BEFORE LIVE
-	uint256 constant public END = 1931622407;
+	uint256 constant public END = 1955491200;
 
 	mapping(address => uint256) public rewards;
 	mapping(address => uint256) public lastUpdate;

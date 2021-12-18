@@ -16,35 +16,45 @@ import "./MerkleWhitelist.sol";
 
 contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 	using ECDSA for bytes32;
+	using Strings for uint256;
 
 	uint256 public constant MAX_SUPPLY = 40000;
 	uint256 public constant PRICE = 0.2 ether;
 	uint256 public constant MAX_PER_CALL = 10;
-	uint256 public constant PUBLIC_SALE = 1000;
 
 	address public yieldToken;
-	uint256 public publicSaleCounter;
 	string public uri;
 
 	mapping(address => uint256) public reservedToMint;
 	mapping(address => uint256) public mintedBy;
 	mapping(address => bool) public human;
 	uint256 public reserved;
-	uint256 public canPurchaseUnclaimed;
+	uint256 public whitelistSale;
 	uint256 public publicSaleDate;
+	bool public rewardsUnlocked;
 
 	mapping(uint256 => uint256) genes;
 
 	event BotMinted(uint256 indexed tokenId, address indexed receiver, uint256 genes);
 
-	constructor(uint256 _canPurchaseUnclaimed, uint256 _publicSaleDate, bytes32 _root) ERC721("Solarbots", "BOTS") MerkleWhitelist(_root) {
-		canPurchaseUnclaimed = _canPurchaseUnclaimed;
+	constructor(uint256 _whitelistSale, uint256 _publicSaleDate, bytes32 _root) ERC721("Solarbots", "MK1") MerkleWhitelist(_root) {
+		whitelistSale = _whitelistSale;
 		publicSaleDate = _publicSaleDate;
+		_mintTeam(0);
 	}
 
 	function _baseURI() internal override view returns (string memory) {
 		return uri;
 	}
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0
+            ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json"))
+            : '';
+    }
 
 	function updateURI(string memory newURI) public onlyOwner {
 		uri = newURI;
@@ -54,7 +64,12 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 		yieldToken = _token;
 	}
 
+	function updateRewardLock(bool _val) external onlyOwner {
+		rewardsUnlocked = _val;
+	}
+
 	function getReward() external {
+		require(rewardsUnlocked, "Can't claim rewards");
 		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		MkToken(yieldToken).getReward(msg.sender);
 	}
@@ -73,14 +88,10 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 		require(block.timestamp >= publicSaleDate, "Public sale not ready");
 		require(_amount <= MAX_PER_CALL, "Minting too many at once");
 		require(msg.value == _amount * PRICE, "Wrong price");
+		require(human[msg.sender], "No human :(");
 
 		uint256 supply = totalSupply();
-		if (block.timestamp < canPurchaseUnclaimed){
-			require(publicSaleCounter + _amount <= PUBLIC_SALE, "Over public sale amount");
-			publicSaleCounter += _amount;
-		}
-		else
-			require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
+		require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
 
 		MkToken(yieldToken).updateReward(msg.sender, address(0), 0);
 		for (uint256 i = 0; i < _amount; i++)
@@ -91,21 +102,17 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 		require(block.timestamp >= publicSaleDate, "Public sale not ready");
 		require(_amount <= MAX_PER_CALL, "Minting too many at once");
 		require(msg.value == _amount * PRICE, "Wrong price");
+		require(human[msg.sender], "No human :(");
 
 		uint256 supply = totalSupply();
-		if (block.timestamp < canPurchaseUnclaimed){
-			require(publicSaleCounter + _amount <= PUBLIC_SALE, "Over public sale amount");
-			publicSaleCounter += _amount;
-		}
-		else
-			require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
+		require(supply + _amount * 4 <= MAX_SUPPLY - reserved * 4, "Can't mint over limit");
 
 		reservedToMint[msg.sender] += _amount;
 		reserved += _amount;
 	}
 
 	function mintAllBotsWithSignature(uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
-		require(block.timestamp >= publicSaleDate, "Public sale not ready");
+		require(block.timestamp >= whitelistSale, "Public sale not ready");
 		require(msg.value == _amount * PRICE, "Wrong price");
 		require(msg.sender == _account, "Caller not part of tree");
 		require(mintedBy[_account] == 0, "Minted some");
@@ -123,7 +130,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 	}
 
 	function mintSomeBotsWithSignature(uint256 _toMint, uint256 _index, address _account, uint256 _amount, bytes32[] memory _proof) public payable {
-		require(block.timestamp >= publicSaleDate, "Public sale not ready");
+		require(block.timestamp >= whitelistSale, "Public sale not ready");
 		require(msg.value == _toMint * PRICE, "Wrong price");
 		require(msg.sender == _account, "Caller not part of tree");
 
