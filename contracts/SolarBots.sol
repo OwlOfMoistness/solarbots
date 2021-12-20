@@ -24,6 +24,7 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
 	address public yieldToken;
 	string public uri;
+	string public suffix;
 
 	mapping(address => uint256) public reservedToMint;
 	mapping(address => uint256) public mintedBy;
@@ -52,12 +53,16 @@ contract SolarBots is ERC721Enumerable, MerkleWhitelist, Ownable {
 
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0
-            ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json"))
+            ? string(abi.encodePacked(baseURI, tokenId.toString(), suffix))
             : '';
     }
 
-	function updateURI(string memory newURI) public onlyOwner {
-		uri = newURI;
+	function updateURI(string memory _newURI) public onlyOwner {
+		uri = _newURI;
+	}
+
+	function updateSuffix(string memory _suffix) public onlyOwner {
+		suffix = _suffix;
 	}
 
 	function updateYieldToken(address _token) external onlyOwner {

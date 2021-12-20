@@ -24,8 +24,9 @@ contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 
 	event RewardPaid(address indexed user, uint256 reward);
 
-	constructor(address _mk) public{
+	constructor(address _mk, address _receiver) public{
 		mkContracts = IERC721(_mk);
+		_mint(_receiver, 9_000_000_000 ether);
 	}
 
 	function min(uint256 a, uint256 b) internal pure returns (uint256) {
