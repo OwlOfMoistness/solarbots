@@ -45,7 +45,7 @@ contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 		if (_to != address(0)) {
 			uint256 timerTo = lastUpdate[_to];
 			if (timerTo > 0)
-				rewards[_to] += mkContracts.balanceOf(_to) * BASE_RATE * (time - timerFrom) / 86400;
+				rewards[_to] += mkContracts.balanceOf(_to) * BASE_RATE * (time - timerTo) / 86400;
 			if (timerTo != END)
 				lastUpdate[_to] = time;
 		}
