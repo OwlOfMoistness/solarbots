@@ -15,6 +15,7 @@ contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 
 	uint256 constant public BASE_RATE = 6_849315068_000000000 ; 
 
+	uint256 constant public START = 1640199600;
 	uint256 constant public END = 1955491200;
 
 	mapping(address => uint256) public rewards;
@@ -40,12 +41,22 @@ contract MkToken is ERC20("Fragments of the Abyss", "FOA") {
 		uint256 timerFrom = lastUpdate[_from];
 		if (timerFrom > 0)
 			rewards[_from] += mkContracts.balanceOf(_from) * BASE_RATE * (time - timerFrom) / 86400;
+		else {
+			uint256 balanceFrom = mkContracts.balanceOf(_from);
+			if (balanceFrom != 0)
+				rewards[_from] += balanceFrom * BASE_RATE * (time - START) / 86400;
+		}
 		if (timerFrom != END)
 			lastUpdate[_from] = time;
 		if (_to != address(0)) {
 			uint256 timerTo = lastUpdate[_to];
 			if (timerTo > 0)
 				rewards[_to] += mkContracts.balanceOf(_to) * BASE_RATE * (time - timerTo) / 86400;
+			else {
+				uint256 balanceTo = mkContracts.balanceOf(_to);
+				if (balanceTo != 0)
+					rewards[_to] += balanceTo * BASE_RATE * (time - START) / 86400;
+			}
 			if (timerTo != END)
 				lastUpdate[_to] = time;
 		}
